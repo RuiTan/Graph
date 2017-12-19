@@ -78,13 +78,22 @@ public:
         return (i >= 0 && i < maxVertices) ? NodeTable[i].data : 0;
     }
     E getWeight(int v1, int v2){
-        if (v1 ！= -1 && )
+        if (v1 != -1 && v2 != -1){
+
+        }
     }
     bool insertVertex(const T& vertex){
-
+        if (numVertices == maxVertices) return false;
+        NodeTable[numVertices].data = vertex;
+        return true;
     }
     bool removeVertex(int v){
-
+        if (v >= numVertices || v < 0 || numVertices == 1) return false;
+        auto removeNode = NodeTable[v];
+        auto replaceNode = NodeTable[numVertices-1];
+        removeNode.adj = replaceNode.adj;
+        removeNode.data = replaceNode.data;
+        numVertices--;
     }
     bool insertEdge(int v1, int v2, E cost){
 
@@ -93,10 +102,23 @@ public:
 
     }
     int getFirstNeighbor(int v){
-
+        if (v != -1){
+            auto node = NodeTable[v].adj;
+            if (node != nullptr) return node->dest;
+        }
+        return -1;
     }
     int getNextNeighbor(int v, int w){
-
+        if (v != -1 && w!= -1){
+            auto node = NodeTable[v].adj;
+            while (node!= nullptr && node->dest!=w){
+                node = node->link;
+            }
+            if (node != nullptr && node->link != nullptr){
+                return node->link->dest;
+            }
+        }
+        return -1;
     }
 
 };
