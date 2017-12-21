@@ -29,17 +29,52 @@ struct Vertex{
 template <class T, class E>
 class Graphlnk {
     friend istream&operator >> (istream& in, Graphlnk<T,E> &G){
-
+        int n, m;
+        in >> n;
+        in >> m;
+        T e1, e2;
+        E cost;
+        for (int i = 0; i < n; ++i) {
+            in >> e1;
+            G.insertVertex(e1);
+        }
+        for (int j = 0; j < m; ++j) {
+            in >> e1 >> e2 >> cost;
+            int v1 = G.getVertexPos(e1), v2 = G.getVertexPos(e2);
+            if (v1 == -1 || v2 == -1){
+                cout << "Wrong input!" << endl;
+                exit(1);
+            }
+            G.insertEdge(v1,v2,cost);
+        }
+        return in;
     }
     friend ostream&operator << (ostream& out, Graphlnk<T,E> &G){
-
+        for (int j = 0; j < G.numVertices; ++j) {
+            auto node = G.NodeTable[j].adj;
+            while (node != nullptr){
+                out << "(" << G.NodeTable[j].data << "," << G.NodeTable[node->dest].data << "," << node->cost << ")" << endl;
+                node = node->link;
+            }
+        }
+        for (int i = 0; i < G.numVertices; ++i) {
+            auto node = G.NodeTable[i].adj;
+            out << G.NodeTable[i].data << "->";
+            while (node != nullptr){
+                out << G.NodeTable[node->dest].data;
+                if (node->link != nullptr)
+                    out << "->";
+                node = node->link;
+            }
+            out << endl;
+        }
     }
 
 private:
     int maxVertices;
     int numEdges;
     int numVertices;
-    const int maxWeight = pow(2, 32);
+    const int maxWeight = static_cast<const int>(pow(2, 32));
     Vertex<T,E> *NodeTable;
     int getVertexPos(const T vertex){
         for (int i = 0; i < numVertices; ++i) {
@@ -79,12 +114,17 @@ public:
     }
     E getWeight(int v1, int v2){
         if (v1 != -1 && v2 != -1){
-
+            auto node = NodeTable[v1].adj;
+            while (node != nullptr && node->dest != v2){
+                node = node->link;
+            }
+            if (node != nullptr) return node->cost;
         }
+        return 0;
     }
     bool insertVertex(const T& vertex){
         if (numVertices == maxVertices) return false;
-        NodeTable[numVertices].data = vertex;
+        NodeTable[numVertices++].data = vertex;
         return true;
     }
     bool removeVertex(int v){
@@ -96,10 +136,47 @@ public:
         numVertices--;
     }
     bool insertEdge(int v1, int v2, E cost){
-
+        if (v1 >= 0 && v1 < numVertices && v2 >= 0 && v2 < numVertices && v1 != v2){
+            auto node = NodeTable[v1].adj;
+            if (node == nullptr){
+                NodeTable[v1].adj = new Edge<T,E>(v2, cost);
+                numEdges++;
+                return true;
+            }
+            while (node->link != nullptr){
+                if (node->dest == v2)
+                    return false;
+                node = node->link;
+            }
+            auto newNode = new Edge<T,E>(v2, cost);
+            node->link = newNode;
+            numEdges++;
+            return true;
+        }
+        return false;
     }
     bool removeEdge(int v1, int v2){
-
+        if (v1 >= 0 && v1 < numVertices && v2 >= 0 && v2 < numVertices && v1 != v2){
+            auto node = NodeTable[v1].adj;
+            if (node == nullptr) return false;
+            if (node->dest == v2) {
+                NodeTable[v1].adj = node->link;
+                delete(node);
+                numEdges--;
+                return true;
+            }
+            while (node->link != nullptr && node->link->dest != v2){
+                node = node->link;
+            }
+            if (node->link != nullptr) {
+                auto p = node->link;
+                node->link = p->link;
+                delete(p);
+                numEdges--;
+                return true;
+            }
+        }
+        return false;
     }
     int getFirstNeighbor(int v){
         if (v != -1){
