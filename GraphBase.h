@@ -22,6 +22,12 @@ protected:
     int numVertices;
     virtual int getVertexPos(T vertex)= 0;
 public:
+    int getNumEdges() const {
+        return numEdges;
+    }
+    int getNumVertices() const {
+        return numVertices;
+    }
     bool GraphEmpty() const{
         return numEdges == 0;
     }
